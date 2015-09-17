@@ -32,9 +32,16 @@ char char_map[] =
 void keyboard_routine()
 {
   unsigned char c = inb(0x60);
-   
-  if (c&0x80 != "\0") printc_xy(0, 21, 'C');
-	else printc_xy(0, 21, char_map[c&0x7f]);
+
+	if (c&0x80) {
+
+		c &= 0x7f;
+
+		if (char_map[c] != '\0')
+			printc_xy(0, 21, char_map[c]);
+		else
+			printc_xy(0, 21, 'C');
+	}
 }
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
@@ -82,6 +89,7 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 }
 
 void keyboard_handler();
+void system_call_handler();
 
 void setIdt()
 {
@@ -93,6 +101,7 @@ void setIdt()
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 	setInterruptHandler(33, keyboard_handler, 0);
+	setTrapHandler(0x80, system_call_handler, 3);
 
   set_idt_reg(&idtR);
 }
