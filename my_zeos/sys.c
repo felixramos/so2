@@ -78,3 +78,10 @@ int ret;
 	}
 	return (nbytes-bytes_left);
 }
+
+extern int zeos_ticks;
+
+int sys_gettime()
+{
+  return zeos_ticks;
+}

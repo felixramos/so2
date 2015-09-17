@@ -43,3 +43,43 @@ int strlen(char *a)
   return i;
 }
 
+void perror()
+{
+  char buffer[256];
+
+  itoa(errno, buffer);
+
+  write(1, buffer, strlen(buffer));
+}
+
+int write(int fd, char *buffer, int size)
+{
+  int result;
+  
+  __asm__ __volatile__ (
+												"int $0x80\n\t"
+												: "=a" (result)
+												: "a" (4), "b" (fd), "c" (buffer), "d" (size)
+	);
+
+  if (result<0) {
+    errno = -result;
+    return -1;
+  }
+  errno=0;
+  return result;
+}
+
+int gettime()
+{
+  int result;
+  
+  __asm__ __volatile__ (
+												"int $0x80\n\t"
+												:"=a" (result)
+												:"a" (10)
+	);
+
+  errno=0;
+  return result;
+}
