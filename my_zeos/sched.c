@@ -59,19 +59,54 @@ void cpu_idle(void)
 	}
 }
 
+struct task_struct *idle_task = NULL;
+
 void init_idle (void)
 {
+	struct list_head *l = list_first(&freequeue); // get an available task_union from the freequeue
 
+	list_del(l);                                  // delete it from the freequeue
+
+	struct task_struct *pcb = list_head_to_task_struct(l);
+
+	pcb->PID = 0;
+
+	allocate_DIR(pcb); //assign the process address space (initialize pcb->dir_pages_baseAddr field)
+
+	union task_union *tu = (union task_union*)pcb;
+
+	tu->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
+
+	tu->stack[KERNEL_STACK_SIZE-2] = 0;
+
+	pcb->register_esp = (int)&(tu->stack[KERNEL_STACK_SIZE-2]);
+
+	idle_task = pcb;
 }
 
 void init_task1(void)
 {
+	struct list_head *l = list_first(&freequeue); // get an available task_union from the freequeue
+
+	list_del(l);                                  // delete it from the freequeue
+
+	struct task_struct *pcb = list_head_to_task_struct(l);
+
+	pcb->PID = 1;
+
+	allocate_DIR(pcb); //assign the process address space (initialize pcb->dir_pages_baseAddr field)
+
+	set_user_pages(pcb);
+
+	union task_union *tu = (union task_union*)pcb;
+
+	tss.esp0 = (DWord)&(tu->stack[KERNEL_STACK_SIZE]);
+
+	set_cr3(pcb->dir_pages_baseAddr);
 }
 
-// Free task structs
-struct list_head freequeue;
-// Ready queue
-struct list_head readyqueue;
+struct list_head freequeue;  // Free task structs
+struct list_head readyqueue; // Ready queue
 
 void init_sched(){
 
@@ -98,3 +133,7 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+struct task_struct* list_head_to_task_struct(struct list_head *l)
+{
+	return (struct task_struct*)((int)l&0xfffff000);
+}
