@@ -68,9 +68,23 @@ void init_task1(void)
 {
 }
 
+// Free task structs
+struct list_head freequeue;
+// Ready queue
+struct list_head readyqueue;
 
 void init_sched(){
 
+  INIT_LIST_HEAD(&freequeue);	// initialize freequeue
+
+  int i;
+  for(i=0; i<NR_TASKS; i++)	// adding ALL task_structs to freequeue
+  {
+    task[i].task.PID = -1;
+    list_add_tail(&task[i].task.list, &freequeue);
+  }
+
+  INIT_LIST_HEAD(&readyqueue);	// initialize readyqueue
 }
 
 struct task_struct* current()
