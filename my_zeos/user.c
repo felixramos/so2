@@ -25,7 +25,7 @@ long outer(long n)
 int add(int par1, int par2)
 {
 	int sum;
-	__asm(
+	__asm__(
 				"add %1, %2;"
 				: "=a" (sum)
 				: "a" (par1), "b" (par2)

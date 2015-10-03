@@ -137,3 +137,25 @@ struct task_struct* list_head_to_task_struct(struct list_head *l)
 {
 	return (struct task_struct*)((int)l&0xfffff000);
 }
+
+void inner_task_switch(union task_union *new)
+{
+
+}
+
+void task_switch(union task_union *new)
+{
+	__asm__ __volatile__(
+		"pushl %esi\n\t"
+		"pushl %edi\n\t"
+		"pushl %ebx\n\t"
+	);
+	
+	inner_task_switch(new);
+
+	__asm__ __volatile__(
+		"popl %ebx\n\t"
+		"popl %edi\n\t"
+		"popl %esi\n\t"
+	);
+}
