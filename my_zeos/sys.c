@@ -37,11 +37,53 @@ int sys_getpid()
 
 int sys_fork()
 {
-    int PID=-1;
-    
     // creates the child process
     
-    return PID;
+    /* any free PCB? */
+    if (list_empty(&freequeue)) return -ENOMEM;
+    
+    /* getting a free PCB for the child process */
+    struct list_head *lh = list_first(&freequeue);
+    list_del(lh);
+    
+    /* copying the parent's task_union to the child */
+    union task_union *tu_child = (union task_union*)list_head_to_task_struct(lh);
+    copy_data(current(), tu_child, sizeof(union task_union));
+    
+    /* initializing the child's dir_pages_baseAddr field with a new directory */
+    allocate_DIR((struct task_struct*)tu_child);
+    
+    /* searching physical pages in which to map the logical pages for data+stack of the child process */
+    page_table_entry *child_PT = get_PT(&tu_child->task);
+    int i;
+    for (i=0; i<NUM_PAG_DATA; i++)
+    {
+        int new_ph_pag = alloc_frame();
+        
+        if (new_ph_pag != -1) // one physical page allocated
+        {
+            set_ss_pag(child_PT, PAG_LOG_INIT_DATA + i, new_ph_pag);
+        }
+        
+        else // there isn't any frame (physical page) available
+        {
+            // deallocating allocated physical pages
+            int j;
+            for (j=0; j<i; j++)
+            {
+                free_frame(get_frame(child_PT, PAG_LOG_INIT_DATA + j));
+                del_ss_pag(child_PT, PAG_LOG_INIT_DATA + j);
+            }
+            
+            // freeing the PCB
+            list_add_tail(lh, &freequeue);
+            
+            // returning the error
+            return -EAGAIN;
+        }
+    }
+    
+    return tu_child->task.PID;
 }
 
 void sys_exit()
