@@ -83,3 +83,17 @@ int gettime()
   errno=0;
   return result;
 }
+
+int getpid()
+{
+  int pid;
+   
+  __asm__ __volatile__ (
+		"int $0x80\n\t"
+		:"=a" (pid)
+		:"a" (20)
+	);
+
+	errno=0;
+	return pid;
+}
