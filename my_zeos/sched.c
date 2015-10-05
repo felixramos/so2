@@ -140,7 +140,39 @@ struct task_struct* list_head_to_task_struct(struct list_head *l)
 
 void inner_task_switch(union task_union *new)
 {
+	/* updating TSS to make it point to the new (system) stack */
+	tss.esp0 = (DWord)&new->stack[KERNEL_STACK_SIZE];
 
+	/* changing the user address space (TLB flush) */
+	set_cr3(get_DIR(&new->task));
+
+	/* storing the current value of the ebp resgister in the (current) PCB */
+	__asm__ __volatile__(
+		"movl %%ebp, %0\n\t"
+		: "=g" (current()->register_esp)
+		:
+	);
+
+	/* changing the current system stack by setting the esp register (restoring new esp) */
+	__asm__ __volatile__(
+		"movl %0, %%esp\n\t"
+		:
+		: "g" (new->task.register_esp)
+	);
+
+	/* Now, we are in the NEW process!! */
+
+	/* restoring new ebp from the (new) stack */
+	__asm__ __volatile__(
+		"popl %%ebp\n\t"
+		::
+	);
+
+	/* return to the routine that called this one */
+	__asm__ __volatile__(
+		"ret\n\t"
+		::
+	);
 }
 
 void task_switch(union task_union *new)
