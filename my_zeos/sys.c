@@ -83,6 +83,26 @@ int sys_fork()
         }
     }
     
+	/* sharing parent's SYSTEM CODE+DATA and USER CODE with child */
+	page_table_entry *parent_PT = get_PT(current());
+	// associating system code+data logical pages with physical pages (frames)
+	for (i=0; i<NUM_PAG_KERNEL; i++)
+		set_ss_pag(child_PT, i, get_frame(parent_PT, i));
+	// associating user code logical pages with physical pages (frames)
+	for (i=0; i<NUM_PAG_CODE; i++)
+		set_ss_pag(child_PT, PAG_LOG_INIT_CODE + i, get_frame(parent_PT, PAG_LOG_INIT_CODE + i));
+
+	/* copying parent's USER DATA to child */
+	for (i=NUM_PAG_KERNEL+NUM_PAG_CODE; i<NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA; i++)
+	{	
+		// mapping one child's physical page to parent's address space (only for the copy)
+		set_ss_pag(parent_PT, i + NUM_PAG_DATA, get_frame(child_PT, i));
+		// copying one page
+		copy_data((void*)(i<<12), (void*)((i + NUM_PAG_DATA)<<12), PAGE_SIZE);
+
+		del_ss_pag(parent_PT, i + NUM_PAG_DATA);
+	}
+
     return tu_child->task.PID;
 }
 
