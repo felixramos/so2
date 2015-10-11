@@ -143,3 +143,19 @@ int get_stats(int pid, struct stats *st)
     errno=0;
     return result;
 }
+
+int fork2(int pids[2])
+{
+    int result;
+    __asm__ __volatile__ (
+                          "int $190\n\t"
+                          :"=a" (result)
+                          :"a" (4), "b" (pids) );
+    if (result<0)
+    {
+        errno = -result;
+        return -1;
+    }
+    errno=0;
+    return result;
+}

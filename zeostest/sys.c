@@ -237,3 +237,8 @@ int sys_get_stats(int pid, struct stats *st)
     }
     return -ESRCH; /*ESRCH */
 }
+
+int sys_fork2(int pids[2])
+{
+    return 0;
+}
