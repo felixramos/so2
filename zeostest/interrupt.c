@@ -95,6 +95,7 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 void clock_handler();
 void keyboard_handler();
 void system_call_handler();
+void positive_sum_handler();
 
 void setIdt()
 {
@@ -108,6 +109,7 @@ void setIdt()
     setInterruptHandler(32, clock_handler, 0);
     setInterruptHandler(33, keyboard_handler, 0);
     setTrapHandler(0x80, system_call_handler, 3);
+	setTrapHandler(0x90, positive_sum_handler, 3);
     
     set_idt_reg(&idtR);
 }

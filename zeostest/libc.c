@@ -143,3 +143,19 @@ int get_stats(int pid, struct stats *st)
     errno=0;
     return result;
 }
+
+int positive_sum(int a, int b, int c, int d)
+{
+    int result;
+    __asm__ __volatile__ (
+                          "int $0x90\n\t"
+                          :"=a" (result)
+                          :"a" (a), "b" (b), "c" (c), "d" (d) );
+    if (result<0)
+    {
+        errno = 34;
+        return -1;
+    }
+    errno=0;
+    return result;
+}

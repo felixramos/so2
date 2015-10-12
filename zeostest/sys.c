@@ -237,3 +237,9 @@ int sys_get_stats(int pid, struct stats *st)
     }
     return -ESRCH; /*ESRCH */
 }
+
+int sys_positive_sum(int a, int b, int c, int d)
+{
+    if (a<0 || b<0 || c<0 || d<0) return -1;
+    return a + b + c + d;
+}

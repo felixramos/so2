@@ -115,3 +115,15 @@ fin:
       popl %eax;
       RESTORE_ALL
       iret;
+
+ENTRY(positive_sum_handler)
+      SAVE_ALL
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      call sys_positive_sum;
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
+      RESTORE_ALL
+      iret;
