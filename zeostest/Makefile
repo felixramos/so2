@@ -105,4 +105,5 @@ gdb: zeos.bin
 	bochs -q -f .bochsrc_gdb
 
 emuldbg: zeos.bin
-	$(HOME)/bochs/bin/bochs -q -f .bochsrc
+	#$(HOME)/bochs/bin/bochs -q -f .bochsrc
+	bochs_nogdb -q -f .bochsrc

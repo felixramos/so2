@@ -28,4 +28,6 @@ int yield();
 
 int get_stats(int pid, struct stats *st);
 
+int positive_sum(int a, int b, int c, int d);
+
 #endif  /* __LIBC_H__ */

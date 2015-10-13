@@ -150,7 +150,7 @@ int positive_sum(int a, int b, int c, int d)
     __asm__ __volatile__ (
                           "int $0x90\n\t"
                           :"=a" (result)
-                          :"a" (a), "b" (b), "c" (c), "d" (d) );
+                          :"b" (a), "c" (b), "d" (c), "S" (d) );
     if (result<0)
     {
         errno = 34;

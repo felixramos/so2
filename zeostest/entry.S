@@ -122,6 +122,7 @@ ENTRY(positive_sum_handler)
       call user_to_system;
       popl %eax;
       call sys_positive_sum;
+      movl %eax, 0x18(%esp);
       pushl %eax;
       call system_to_user;
       popl %eax;
