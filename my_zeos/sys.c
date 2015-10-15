@@ -18,6 +18,8 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
+int global_PID = 1;
+
 int check_fd(int fd, int permissions)
 {
     if (fd!=1) return -9; /*EBADF*/
@@ -33,6 +35,11 @@ int sys_ni_syscall()
 int sys_getpid()
 {
     return current()->PID;
+}
+
+int ret_from_fork()
+{
+	return 0;
 }
 
 int sys_fork()
@@ -102,6 +109,24 @@ int sys_fork()
 
 		del_ss_pag(parent_PT, i + NUM_PAG_DATA);
 	}
+
+	/* mapping parent's ebp to child's stack */
+	int register_ebp;
+	__asm__ __volatile__ (
+                          "movl %%ebp, %0\n\t"
+                          : "=g" (register_ebp)
+                          :
+                          );
+	tu_child->task.register_esp = (register_ebp - (int)current()) + (int)tu_child;
+
+	/* updating child's stack */
+	*(DWord*)(tu_child->task.register_esp) = (DWord)&ret_from_fork;
+	tu_child->task.register_esp -= sizeof(DWord);
+	*(DWord*)(tu_child->task.register_esp) = 0; // this value does not matter (it will never be used)
+
+	/* queuing child process into readyqueue */
+	tu_child->task.PID = global_PID++;
+	list_add_tail(&(tu_child->task.list), &readyqueue);
 
     return tu_child->task.PID;
 }
