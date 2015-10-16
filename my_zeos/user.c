@@ -45,5 +45,10 @@ main(void)
     /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
     
     
-    while(1) { }
+    char msg[] = "\nI am the user process...";
+
+    while(1)
+	{
+		write(1, msg, sizeof(msg));
+	}
 }

@@ -55,11 +55,12 @@ void cpu_idle(void)
     
     while(1)
     {
-        ;
+        printk("\nI am the idle process...");
     }
 }
 
 struct task_struct *idle_task = NULL;
+struct task_struct *task1 = NULL;
 
 void init_idle (void)
 {
@@ -103,6 +104,8 @@ void init_task1(void)
     tss.esp0 = (DWord)&(tu->stack[KERNEL_STACK_SIZE]);
     
     set_cr3(pcb->dir_pages_baseAddr);
+
+	task1 = pcb;
 }
 
 struct list_head freequeue;  // Free task structs

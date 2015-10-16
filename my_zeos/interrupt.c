@@ -37,10 +37,18 @@ void keyboard_routine()
         
         c &= 0x7f;
         
-        if (char_map[c] != '\0')
+        /*if (char_map[c] != '\0')
             printc_xy(0, 21, char_map[c]);
         else
-            printc_xy(0, 21, 'C');
+            printc_xy(0, 21, 'C');*/
+
+		if (char_map[c] == 's')
+		{
+			if (current()->PID == 1)
+				task_switch((union task_union*)idle_task);
+			else if (current()->PID == 0)
+				task_switch((union task_union*)task1);
+		}
     }
 }
 
