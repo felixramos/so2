@@ -237,3 +237,45 @@ int sys_get_stats(int pid, struct stats *st)
     }
     return -ESRCH; /*ESRCH */
 }
+
+#define MAX 20
+
+typedef struct {
+    char msg[MAX];
+    int size;
+} Mailbox;
+
+Mailbox q3mailbox;
+
+char *data = (char*)&q3mailbox;
+//q3mailbox.size = 0;
+
+int sys_q3send(char *buffer, int size)
+{
+    if (q3mailbox.size)
+        return -EAGAIN;
+    if (size < 0)
+        return -EINVAL;
+    if (!access_ok(VERIFY_READ, buffer, size))
+        return -EFAULT;
+    
+    size = size<MAX?size:MAX;
+    copy_from_user(buffer, data, size);
+    q3mailbox.size = size;
+    
+    return 0;
+}
+
+int sys_q3recv(char *buffer, int *size)
+{
+    if (!q3mailbox.size)
+        return -EAGAIN;
+    if (!access_ok(VERIFY_WRITE, buffer, *size))
+        return -EFAULT;
+    ;
+    *size = *size>q3mailbox.size?q3mailbox.size:*size;
+    copy_to_user(data, buffer, *size);
+    q3mailbox.size = 0;
+    
+    return 0;
+}

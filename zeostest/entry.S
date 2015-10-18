@@ -115,3 +115,29 @@ fin:
       popl %eax;
       RESTORE_ALL
       iret;
+
+ENTRY(q3send_handler)
+      SAVE_ALL
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      call sys_q3send;
+      movl %eax, 0x18(%esp);
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
+      RESTORE_ALL
+      iret;
+
+ENTRY(q3recv_handler)
+      SAVE_ALL
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      call sys_q3recv;
+      movl %eax, 0x18(%esp);
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
+      RESTORE_ALL
+      iret;

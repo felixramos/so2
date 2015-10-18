@@ -6,6 +6,8 @@
 
 #include <types.h>
 
+#include <errno.h>
+
 int errno;
 
 void itoa(int a, char *b)
@@ -142,4 +144,36 @@ int get_stats(int pid, struct stats *st)
     }
     errno=0;
     return result;
+}
+
+int q3send(char *buffer, int size)
+{
+	int result;
+    __asm__ __volatile__ (
+                          "int $60\n\t"
+                          :"=a" (result)
+                          :"b" (buffer), "c" (size) );
+    if (result<0)
+    {
+        errno = -result;
+        return -1;
+    }
+    errno=0;	
+	return 0;
+}
+
+int q3recv(char *buffer, int *size)
+{
+	int result;
+    __asm__ __volatile__ (
+                          "int $61\n\t"
+                          :"=a" (result)
+                          :"b" (buffer), "c" (size) );
+    if (result<0)
+    {
+        errno = -result;
+        return -1;
+    }
+    errno=0;	
+	return 0;
 }
