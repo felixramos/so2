@@ -91,6 +91,10 @@ main(void)
     init_idle();
     /* Initialize task 1 data */
     init_task1();
+
+	/* Initialize q3mailbox */
+	extern void init_q3mailbox();
+	init_q3mailbox();
     
     /* Move user code/data now (after the page table initialization) */
     copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);

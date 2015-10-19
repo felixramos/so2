@@ -247,8 +247,10 @@ typedef struct {
 
 Mailbox q3mailbox;
 
-char *data = (char*)&q3mailbox;
-//q3mailbox.size = 0;
+void init_q3mailbox()
+{
+	q3mailbox.size = 0;
+}
 
 int sys_q3send(char *buffer, int size)
 {
@@ -260,7 +262,7 @@ int sys_q3send(char *buffer, int size)
         return -EFAULT;
     
     size = size<MAX?size:MAX;
-    copy_from_user(buffer, data, size);
+    copy_from_user(buffer, (char*)&q3mailbox, size);
     q3mailbox.size = size;
     
     return 0;
@@ -272,9 +274,10 @@ int sys_q3recv(char *buffer, int *size)
         return -EAGAIN;
     if (!access_ok(VERIFY_WRITE, buffer, *size))
         return -EFAULT;
-    ;
-    *size = *size>q3mailbox.size?q3mailbox.size:*size;
-    copy_to_user(data, buffer, *size);
+
+    int reading_size = *size>q3mailbox.size?q3mailbox.size:*size;
+    copy_to_user((char*)&q3mailbox, buffer, reading_size);
+    copy_to_user(&reading_size, size, sizeof(int));
     q3mailbox.size = 0;
     
     return 0;
