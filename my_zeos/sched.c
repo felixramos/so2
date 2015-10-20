@@ -49,64 +49,6 @@ int allocate_DIR(struct task_struct *t)
     return 1;
 }
 
-void cpu_idle(void)
-{
-    __asm__ __volatile__("sti": : :"memory");
-    
-    while(1)
-    {
-        printk("\nI am the idle process...");
-    }
-}
-
-struct task_struct *idle_task = NULL;
-struct task_struct *task1 = NULL;
-
-void init_idle (void)
-{
-    struct list_head *l = list_first(&freequeue); // get an available task_union from the freequeue
-    
-    list_del(l);                                  // delete it from the freequeue
-    
-    struct task_struct *pcb = list_head_to_task_struct(l);
-    
-    pcb->PID = 0;
-    
-    allocate_DIR(pcb); //assign the process address space (initialize pcb->dir_pages_baseAddr field)
-    
-    union task_union *tu = (union task_union*)pcb;
-    
-    tu->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
-    
-    tu->stack[KERNEL_STACK_SIZE-2] = 0;
-    
-    pcb->register_esp = (int)&(tu->stack[KERNEL_STACK_SIZE-2]);
-    
-    idle_task = pcb;
-}
-
-void init_task1(void)
-{
-    struct list_head *l = list_first(&freequeue); // get an available task_union from the freequeue
-    
-    list_del(l);                                  // delete it from the freequeue
-    
-    struct task_struct *pcb = list_head_to_task_struct(l);
-    
-    pcb->PID = 1;
-    
-    allocate_DIR(pcb); //assign the process address space (initialize pcb->dir_pages_baseAddr field)
-    
-    set_user_pages(pcb);
-    
-    union task_union *tu = (union task_union*)pcb;
-    
-    tss.esp0 = (DWord)&(tu->stack[KERNEL_STACK_SIZE]);
-    
-    set_cr3(pcb->dir_pages_baseAddr);
-
-	task1 = pcb;
-}
 
 struct list_head freequeue;  // Free task structs
 struct list_head readyqueue; // Ready queue
@@ -192,4 +134,126 @@ void task_switch(union task_union *new)
                          "popl %edi\n\t"
                          "popl %esi\n\t"
                          );
+}
+
+/* round robin scheduling policy */
+
+#define DEFAULT_QUANTUM 10
+
+int remaining_quantum = 0;
+
+int get_quantum(struct task_struct *t)
+{
+	return t->quantum;
+}
+
+void set_quantum(struct task_struct *t, int q)
+{
+	t->quantum = q;
+}
+
+void update_sched_data_rr(void)
+{
+	remaining_quantum--;
+}
+
+int needs_sched_rr(void)
+{
+	if (remaining_quantum==0)
+	{
+		if (!list_empty(&readyqueue)) return 1;
+		
+		remaining_quantum = get_quantum(current());
+	}
+
+	return 0;
+}
+
+void update_process_state_rr(struct task_struct *t, struct list_head *l)
+{
+
+}
+
+void sched_next_rr(void)
+{
+	struct list_head *l = list_first(&readyqueue);
+	struct task_struct *next;
+
+	if (l)
+	{
+		next = list_head_to_task_struct(l);
+		list_del(l);
+	}
+
+	else
+	{
+		next = idle_task;
+	}
+
+	next->state = RUNNING;
+	remaining_quantum = get_quantum(next);
+
+	task_switch((union task_union*)next);
+}
+
+void cpu_idle(void)
+{
+    __asm__ __volatile__("sti": : :"memory");
+    
+    while(1)
+    {
+        printk("\nI am the idle process...");
+    }
+}
+
+struct task_struct *idle_task = NULL;
+struct task_struct *task1 = NULL;
+
+void init_idle (void)
+{
+    struct list_head *l = list_first(&freequeue); // get an available task_union from the freequeue
+    
+    list_del(l);                                  // delete it from the freequeue
+    
+    struct task_struct *pcb = list_head_to_task_struct(l);
+    
+    pcb->PID = 0;
+	pcb->quantum = DEFAULT_QUANTUM;
+    
+    allocate_DIR(pcb); //assign the process address space (initialize pcb->dir_pages_baseAddr field)
+    
+    union task_union *tu = (union task_union*)pcb;
+    
+    tu->stack[KERNEL_STACK_SIZE-1] = (unsigned long)&cpu_idle;
+    
+    tu->stack[KERNEL_STACK_SIZE-2] = 0;
+    
+    pcb->register_esp = (int)&(tu->stack[KERNEL_STACK_SIZE-2]);
+    
+    idle_task = pcb;
+}
+
+void init_task1(void)
+{
+    struct list_head *l = list_first(&freequeue); // get an available task_union from the freequeue
+    
+    list_del(l);                                  // delete it from the freequeue
+    
+    struct task_struct *pcb = list_head_to_task_struct(l);
+    
+    pcb->PID = 1;
+	pcb->quantum = DEFAULT_QUANTUM;
+	pcb->state = RUNNING;
+    
+    allocate_DIR(pcb); //assign the process address space (initialize pcb->dir_pages_baseAddr field)
+    
+    set_user_pages(pcb);
+    
+    union task_union *tu = (union task_union*)pcb;
+    
+    tss.esp0 = (DWord)&(tu->stack[KERNEL_STACK_SIZE]);
+    
+    set_cr3(pcb->dir_pages_baseAddr);
+
+	task1 = pcb;
 }

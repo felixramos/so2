@@ -18,7 +18,7 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
-int global_PID = 1;
+int global_PID = 2;
 
 int check_fd(int fd, int permissions)
 {

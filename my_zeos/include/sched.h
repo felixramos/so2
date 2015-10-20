@@ -12,13 +12,15 @@
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
 
-enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
+enum State { RUNNING, READY, BLOCKED };
 
 struct task_struct {
-  int PID; // Process ID (this MUST be the first field of the struct)
-  page_table_entry * dir_pages_baseAddr;
-  struct list_head list; // Task struct enqueuing
+	int PID; // Process ID (this MUST be the first field of the struct)
+	page_table_entry * dir_pages_baseAddr;
+	struct list_head list; // Task struct enqueuing
 	int register_esp;      // position in the stack
+	int quantum;
+	enum State state;
 };
 
 union task_union {
@@ -58,9 +60,9 @@ page_table_entry * get_PT (struct task_struct *t) ;
 page_table_entry * get_DIR (struct task_struct *t) ;
 
 /* Headers for the scheduling policy */
-void sched_next_rr();
+void update_sched_data_rr(void);
+int needs_sched_rr(void);
 void update_process_state_rr(struct task_struct *t, struct list_head *dest);
-int needs_sched_rr();
-void update_sched_data_rr();
+void sched_next_rr(void);
 
 #endif  /* __SCHED_H__ */
