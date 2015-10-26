@@ -115,3 +115,29 @@ fin:
       popl %eax;
       RESTORE_ALL
       iret;
+
+ENTRY(sleep_handler)
+      SAVE_ALL
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      call sys_sleep;
+      movl %eax, 0x18(%esp);
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
+      RESTORE_ALL
+      iret;
+
+ENTRY(wakeup_handler)
+      SAVE_ALL
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      call sys_wakeup;
+      movl %eax, 0x18(%esp);
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
+      RESTORE_ALL
+      iret;

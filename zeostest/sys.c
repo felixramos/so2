@@ -237,3 +237,16 @@ int sys_get_stats(int pid, struct stats *st)
     }
     return -ESRCH; /*ESRCH */
 }
+
+int sys_sleep(int seconds)
+{
+	if (seconds < 0)
+        return -EINVAL;
+
+    return 0;
+}
+
+int sys_wakeup(int pid, int NOW)
+{
+    return 0;
+}

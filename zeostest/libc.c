@@ -143,3 +143,35 @@ int get_stats(int pid, struct stats *st)
     errno=0;
     return result;
 }
+
+int sleep(int seconds)
+{
+	int result;
+    __asm__ __volatile__ (
+                          "int $0x60\n\t"
+                          :"=a" (result)
+                          :"b" (seconds) );
+    if (result<0)
+    {
+        errno = -result;
+        return -1;
+    }
+    errno=0;
+    return result;
+}
+
+int wakeup(int pid, int NOW)
+{
+	int result;
+    __asm__ __volatile__ (
+                          "int $0x61\n\t"
+                          :"=a" (result)
+                          :"b" (pid), "c" (NOW) );
+    if (result<0)
+    {
+        errno = -result;
+        return -1;
+    }
+    errno=0;
+    return result;
+}
