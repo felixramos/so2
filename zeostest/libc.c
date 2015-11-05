@@ -143,3 +143,19 @@ int get_stats(int pid, struct stats *st)
     errno=0;
     return result;
 }
+
+int write_at(int col, int fil, char *buffer, int size)
+{
+	int result;
+	__asm__ __volatile__ (
+	"int $0x81\n\t"
+	:"=a" (result)
+	:"a" (4), "b" (col), "c" (fil), "d" (buffer), "S" (size) );
+	if (result<0)
+	{
+		errno = -result;
+		return -1;
+	}
+	errno=0;
+	return result;
+}

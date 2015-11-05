@@ -40,3 +40,12 @@ ENTRY (sys_call_table)
 .long sys_get_stats     //35
 .globl MAX_SYSCALL
 MAX_SYSCALL = (. - sys_call_table)/4
+
+ENTRY (sys_call2_table)
+.long sys_ni_syscall //0
+.long sys_ni_syscall //1
+.long sys_ni_syscall //2
+.long sys_ni_syscall //3
+.long sys_write_at //4
+.globl MAX_SYSCALL2
+MAX_SYSCALL2 = (. - sys_call2_table)/4

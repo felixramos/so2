@@ -237,3 +237,13 @@ int sys_get_stats(int pid, struct stats *st)
     }
     return -ESRCH; /*ESRCH */
 }
+
+int sys_write_at(int col, int fil, char *buffer, int size)
+{
+    if (col < 0 || fil < 0 || size < 0)
+        return -EINVAL;
+    if (!access_ok(VERIFY_READ, buffer, size))
+        return -EFAULT;
+
+	return 0;
+}

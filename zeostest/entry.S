@@ -115,3 +115,24 @@ fin:
       popl %eax;
       RESTORE_ALL
       iret;
+
+ENTRY(system_call2_handler)
+      SAVE_ALL
+      pushl %eax;
+      call user_to_system;
+      popl %eax;
+      cmpl $0, %eax;
+      jl err2;
+      cmpl $MAX_SYSCALL2, %eax;
+      jg err2;
+      call *sys_call2_table(, %eax, 0x4);
+      jmp fin2;
+err2:
+      movl $-ENOSYS, %eax;
+fin2:
+      movl %eax, 0x18(%esp);
+      pushl %eax;
+      call system_to_user;
+      popl %eax;
+      RESTORE_ALL
+      iret;
