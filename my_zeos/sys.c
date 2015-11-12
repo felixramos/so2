@@ -131,15 +131,60 @@ int sys_fork()
     return tu_child->task.PID;
 }
 
+int sys_clone(void (*function)(void), void *stack)
+{
+    // creates the child process
+    
+    /* any free PCB? */
+    if (list_empty(&freequeue)) return -ENOMEM;
+    
+    /* getting a free PCB for the child process */
+    struct list_head *lh = list_first(&freequeue);
+    list_del(lh);
+    
+    /* copying the parent's task_union to the child */
+    union task_union *tu_child = (union task_union*)list_head_to_task_struct(lh);
+    copy_data(current(), tu_child, sizeof(union task_union));
+
+	/* increasing current dir references */
+	increase_DIR_refs(get_DIR(current()));
+    
+	/* mapping parent's ebp to child's stack */
+	int register_ebp;
+	__asm__ __volatile__ (
+                          "movl %%ebp, %0\n\t"
+                          : "=g" (register_ebp)
+                          :
+                          );
+	tu_child->task.register_esp = (register_ebp - (int)current()) + (int)tu_child;
+
+	/* updating child's stack */
+	*(DWord*)(tu_child->task.register_esp) = (DWord)&ret_from_fork;
+	tu_child->task.register_esp -= sizeof(DWord);
+	*(DWord*)(tu_child->task.register_esp) = 0; // this value does not matter (it will never be used)
+    tu_child->stack[KERNEL_STACK_SIZE - 5] = (unsigned long) function;
+    tu_child->stack[KERNEL_STACK_SIZE - 2] = (unsigned long) stack;
+
+	/* queuing child process into readyqueue */
+	tu_child->task.PID = global_PID++;
+    tu_child->task.state=READY;
+	list_add_tail(&(tu_child->task.list), &readyqueue);
+
+    return tu_child->task.PID;
+}
+
 void sys_exit()
 {
-	/* Deallocating all the propietary physical pages */
-	page_table_entry *process_PT = get_PT(current());
-	int i;
-	for (i=0; i<NUM_PAG_DATA; i++)
+	if (free_DIR(get_DIR(current())))
 	{
-		free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA + i));
-		del_ss_pag(process_PT, PAG_LOG_INIT_DATA + i);
+		/* Deallocating all the propietary physical pages */
+		page_table_entry *process_PT = get_PT(current());
+		int i;
+		for (i=0; i<NUM_PAG_DATA; i++)
+		{
+			free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA + i));
+			del_ss_pag(process_PT, PAG_LOG_INIT_DATA + i);
+		}
 	}
 	
 	/* freeing the PCB */

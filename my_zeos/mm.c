@@ -25,6 +25,8 @@ __attribute__((__section__(".data.task")));
 page_table_entry pagusr_table[NR_TASKS][TOTAL_PAGES]
 __attribute__((__section__(".data.task")));
 
+int dir_references[NR_TASKS];  // Number of references to each directory
+
 /* TSS */
 TSS         tss;
 
@@ -46,7 +48,8 @@ void init_dir_pages()
         dir_pages[i][ENTRY_DIR_PAGES].bits.user = 1;
         dir_pages[i][ENTRY_DIR_PAGES].bits.rw = 1;
         dir_pages[i][ENTRY_DIR_PAGES].bits.present = 1;
-        
+
+        dir_references[i] = 0;
     }
     
 }

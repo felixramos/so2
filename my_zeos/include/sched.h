@@ -55,6 +55,10 @@ struct task_struct *list_head_to_task_struct(struct list_head *l);
 
 int allocate_DIR(struct task_struct *t);
 
+int free_DIR(page_table_entry *dir);
+
+void increase_DIR_refs(page_table_entry *dir);
+
 page_table_entry * get_PT (struct task_struct *t) ;
 
 page_table_entry * get_DIR (struct task_struct *t) ;

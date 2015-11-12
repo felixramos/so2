@@ -40,15 +40,34 @@ page_table_entry * get_PT (struct task_struct *t)
 
 int allocate_DIR(struct task_struct *t)
 {
-    int pos;
-    
-    pos = ((int)t-(int)task)/sizeof(union task_union);
-    
-    t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
-    
-    return 1;
+	int i;
+	for (i=0; i<NR_TASKS; i++)
+	{
+		if (dir_references[i] == 0)
+		{
+			t->dir_pages_baseAddr = (page_table_entry*)&dir_pages[i];
+			dir_references[i]++;
+			return 1;
+		}
+	}
+	return 0; // no free directory available...
 }
 
+/* free_DIR - Decrements number of references to directory 
+ * returns true if associated page tables must be released */
+int free_DIR(page_table_entry *dir)
+{
+	int pos = ( (int)dir - (int)dir_pages )/( sizeof(page_table_entry)*TOTAL_PAGES );
+	dir_references[pos]--;
+	return (dir_references[pos]==0);
+}
+
+/* increase_DIR_refs - Increases number of references to directory */
+void increase_DIR_refs(page_table_entry *dir)
+{
+	int pos = ( (int)dir - (int)dir_pages )/( sizeof(page_table_entry)*TOTAL_PAGES );
+	dir_references[pos]++;
+}
 
 struct list_head freequeue;  // Free task structs
 struct list_head readyqueue; // Ready queue
