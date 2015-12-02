@@ -195,11 +195,11 @@ void update_process_state_rr(struct task_struct *t, struct list_head *l)
 
 void sched_next_rr(void)
 {
-	struct list_head *l = list_first(&readyqueue);
 	struct task_struct *next;
 
-	if (l)
+	if (!list_empty(&readyqueue))
 	{
+		struct list_head *l = list_first(&readyqueue);
 		next = list_head_to_task_struct(l);
 		list_del(l);
 	}
