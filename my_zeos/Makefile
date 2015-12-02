@@ -26,7 +26,7 @@ SYSLDFLAGS = -T system.lds
 USRLDFLAGS = -T user.lds
 LINKFLAGS = -g
 
-SYSOBJ = interrupt.o entry.o sys_call_table.o io.o sched.o sys.o mm.o devices.o utils.o hardware.o list.o
+SYSOBJ = interrupt.o entry.o sys_call_table.o io.o sched.o sys.o mm.o devices.o utils.o hardware.o list.o  semaphore.o
 
 LIBZEOS = -L . -l zeos
 
@@ -84,6 +84,7 @@ system: system.o system.lds $(SYSOBJ)
 user: user.o user.lds $(USROBJ) 
 	$(LD) $(LINKFLAGS) $(USRLDFLAGS) -o $@ $< $(USROBJ)
 
+semaphores.o:semaphore.c $(INCLUDEDIR)/semaphore.h
 
 clean:
 	rm -f *.o *.s bochsout.txt parport.out system.out system bootsect zeos.bin user user.out *~ build 

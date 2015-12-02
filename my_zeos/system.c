@@ -12,6 +12,7 @@
 #include <io.h>
 #include <utils.h>
 #include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
+#include <semaphore.h>
 
 
 int (*usr_main)(void) = (void *) PH_USER_START;
@@ -91,6 +92,9 @@ main(void)
     init_idle();
     /* Initialize task 1 data */
     init_task1();
+
+    /* Initialize semaphores */
+    init_semaphores();
     
     /* Move user code/data now (after the page table initialization) */
     copy_data((void *) KERNEL_START + *p_sys_size, usr_main, *p_usr_size);
