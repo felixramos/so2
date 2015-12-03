@@ -168,3 +168,20 @@ int sem_signal(int n_sem)
   errno=0;
   return result;
 }
+
+int sem_destroy(int n_sem)
+{
+  int result;
+
+  __asm__ __volatile__ (
+	"int $0x80\n\t"
+	: "=a" (result)
+	: "a" (24), "b" (n_sem));
+  if (result<0)
+  {
+    errno = -result;
+    return -1;
+  }
+  errno=0;
+  return result;
+}

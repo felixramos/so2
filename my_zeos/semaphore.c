@@ -69,3 +69,20 @@ int sys_sem_signal(int n_sem)
 
 	return 0;
 }
+
+int sys_sem_destroy(int n_sem)
+{
+	if ((n_sem<0) || (n_sem>=MAX_SEM)) return -EBADF;
+	if (semaphores[n_sem].owner == -1) return -EBADF;	// already dead
+	if (current()->PID != semaphores[n_sem].owner) return -EPERM;
+
+    while (!list_empty(&semaphores[n_sem].blocked))
+    {
+        struct list_head *lh = list_first(&semaphores[n_sem].blocked);
+		list_del(lh);
+        update_process_state_rr(list_head_to_task_struct(lh), &readyqueue);
+    }
+	semaphores[n_sem].owner = -1;
+
+	return 0;
+}
