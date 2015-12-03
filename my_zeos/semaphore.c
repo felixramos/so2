@@ -49,3 +49,23 @@ int sys_sem_wait(int n_sem)
 		
 	return 0;
 }
+
+int sys_sem_signal(int n_sem)
+{
+	if ((n_sem<0) || (n_sem>=MAX_SEM)) return -EBADF;
+	if (semaphores[n_sem].owner == -1) return -EBADF;	// already dead
+
+	if (list_empty(&semaphores[n_sem].blocked)) {
+		semaphores[n_sem].counter++;
+	}
+
+    else
+    {
+		struct list_head *lh = list_first(&semaphores[n_sem].blocked);
+		list_del(lh);
+		struct task_struct *pcb = list_head_to_task_struct(lh);
+		update_process_state_rr(pcb, &readyqueue);
+	}
+
+	return 0;
+}
