@@ -23,6 +23,7 @@ ENTRY (sys_call_table)
 .long sys_ni_syscall    //18
 .long sys_clone         //19
 .long sys_getpid        //20
-.long sys_sem_init		//21
+.long sys_sem_init      //21
+.long sys_sem_wait      //22
 .globl MAX_SYSCALL
 MAX_SYSCALL = (. - sys_call_table)/4

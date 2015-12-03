@@ -30,3 +30,22 @@ int sys_sem_init(int n_sem, unsigned int value)
 	semaphores[n_sem].counter = value;
 	return 0;
 }
+
+int sys_sem_wait(int n_sem)
+{
+	if ((n_sem<0) || (n_sem>=MAX_SEM)) return -EBADF;
+	if (semaphores[n_sem].owner == -1) return -EBADF;	// already dead
+	
+	if (semaphores[n_sem].counter <=0) {
+		update_process_state_rr(current(), &semaphores[n_sem].blocked);
+		sched_next_rr();
+		if (semaphores[n_sem].owner == -1) return -1;
+	}
+
+    else
+    {
+		semaphores[n_sem].counter--;
+	}
+		
+	return 0;
+}
